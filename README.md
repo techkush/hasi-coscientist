@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/cover_image.png" alt="HASI — Hybrid Autonomous Scientific Intelligence" width="640">
+  <img src="docs/assets/cover_image.png" alt="HASI — Hybrid Autonomous Scientific Intelligence" width="640">
 </p>
 
 <h1 align="center">HASI — Hybrid Autonomous Scientific Intelligence</h1>
