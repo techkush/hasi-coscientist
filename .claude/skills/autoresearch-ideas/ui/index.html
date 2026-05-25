@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Autoresearch · Idea Basket</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#161922; --panel2:#1b1f2a; --bd:#262b38;
+    --fg:#e6e8eb; --dim:#9aa3ad; --accent:#7cc4ff; --green:#7ed4a3;
+    --greenbd:#2f7d52; --amber:#f0c674; --red:#f08a8a; --purple:#b79cff;
+    --mono:ui-monospace,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.55}
+  header{padding:16px 26px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px}
+  header .dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+  header .dot.run{background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse 1.2s infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  header h1{font-size:18px;margin:0;font-weight:650}
+  header .sub{color:var(--dim);font-size:13px;margin-left:auto}
+  .layout{display:grid;grid-template-columns:280px 1fr;gap:0;min-height:calc(100vh - 53px)}
+  /* sidebar */
+  .side{border-right:1px solid var(--bd);padding:18px 16px;background:var(--panel)}
+  .side h3{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin:0 0 10px}
+  .file{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;
+    margin-bottom:7px;background:var(--panel2);font-size:12.5px}
+  .file .fn{font-family:var(--mono);font-size:12px;word-break:break-all;flex:1}
+  .vis{font-size:10px;font-weight:700;text-transform:uppercase;border-radius:4px;padding:1px 6px}
+  .vis.visited{background:rgba(126,212,163,.15);color:var(--green)}
+  .vis.new{background:rgba(240,198,116,.15);color:var(--amber)}
+  .side .empty{color:var(--dim);font-size:12px;padding:8px 2px}
+  .uploadbtn{width:100%;margin-top:8px}
+  /* main */
+  main{padding:22px 24px 60px;max-width:900px}
+  .card{background:var(--panel);border:1px solid var(--bd);border-radius:12px;padding:20px 22px;margin-bottom:16px}
+  h2{font-size:16px;margin:0 0 4px}
+  .hint{color:var(--dim);font-size:13px;margin:0 0 14px}
+  .goal{font-size:13.5px;background:var(--panel2);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;margin-bottom:14px}
+  .goal b{color:var(--dim);font-weight:600}
+  .controls{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:11.5px;color:var(--dim)}
+  .field input[type=number]{width:90px;background:var(--panel2);border:1px solid var(--bd);border-radius:8px;
+    color:var(--fg);font-family:var(--mono);font-size:14px;padding:9px 11px}
+  .btn{border:none;border-radius:8px;padding:10px 18px;font-size:13.5px;font-weight:700;cursor:pointer}
+  .btn.primary{background:var(--green);color:#06210f}
+  .btn.go{background:var(--accent);color:#04263d}
+  .btn.ghost{background:transparent;border:1px solid var(--bd);color:var(--fg);font-weight:600}
+  .btn.warn{background:var(--amber);color:#2a2206}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .spinner{width:16px;height:16px;border:3px solid var(--bd);border-top-color:var(--accent);
+    border-radius:50%;animation:spin 1s linear infinite;display:inline-block;vertical-align:middle}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .banner{display:flex;align-items:center;gap:10px;background:rgba(124,196,255,.08);border:1px solid #2d4a63;
+    border-radius:8px;padding:10px 14px;font-size:13.5px;color:var(--accent);margin-top:12px}
+  .banner.hidden{display:none}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 12px}
+  .chip{background:var(--panel2);border:1px solid var(--bd);border-radius:8px;padding:5px 11px;font-size:12px}
+  .chip b{font-family:var(--mono)}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  thead th{position:sticky;top:0;background:var(--panel2);color:var(--dim);text-align:left;padding:8px 11px;
+    border-bottom:1px solid var(--bd);font-weight:600}
+  tbody td{padding:8px 11px;border-bottom:1px solid var(--bd);vertical-align:top}
+  .st{display:inline-block;border-radius:5px;padding:1px 8px;font-size:10.5px;font-weight:700;text-transform:uppercase}
+  .st.pending{background:rgba(240,198,116,.15);color:var(--amber)}
+  .st.doing{background:rgba(124,196,255,.15);color:var(--accent)}
+  .st.selected{background:rgba(126,212,163,.15);color:var(--green)}
+  .st.discarded{background:rgba(154,163,173,.12);color:var(--dim)}
+  .src{font-size:11px;color:var(--purple);font-weight:600}
+  .srcraw{font-size:11px;color:var(--dim);font-family:var(--mono);word-break:break-all}
+  .srcraw a{color:var(--accent)}
+  .empty{padding:22px;text-align:center;color:var(--dim);font-size:13px}
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:20}
+  .modal.hidden{display:none}
+  .dialog{background:var(--panel);border:1px solid var(--bd);border-radius:12px;padding:22px;width:min(640px,92vw);max-height:88vh;overflow:auto}
+  .dialog h3{margin:0 0 8px;font-size:16px}
+  textarea{width:100%;min-height:90px;background:var(--panel2);border:1px solid var(--bd);border-radius:8px;
+    color:var(--fg);font-family:var(--sans);font-size:14px;padding:11px 13px;resize:vertical}
+  pre.idea{white-space:pre-wrap;background:#0b0d12;border:1px solid var(--bd);border-radius:8px;padding:14px;font-size:13px;font-family:var(--mono)}
+  .opinion{border-left:3px solid var(--accent);background:rgba(124,196,255,.06);padding:10px 13px;border-radius:6px;font-size:13px;margin:10px 0}
+  .align{display:inline-block;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:700;margin-bottom:8px}
+  .align.yes{background:rgba(126,212,163,.15);color:var(--green)}
+  .align.no{background:rgba(240,138,138,.15);color:var(--red)}
+  .row{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+  .mdview{white-space:pre-wrap;background:#0b0d12;border:1px solid var(--bd);border-radius:8px;padding:14px;font-size:12.5px;font-family:var(--mono);max-height:70vh;overflow:auto}
+</style>
+</head>
+<body>
+<header>
+  <span class="dot" id="dot"></span>
+  <h1>Autoresearch · Idea Basket</h1>
+  <span class="sub" id="phaseLabel">loading…</span>
+</header>
+
+<div class="layout">
+  <!-- LEFT: files -->
+  <aside class="side">
+    <h3>Files added</h3>
+    <div id="fileList"></div>
+    <div class="empty" id="noFiles">No files yet.</div>
+    <input type="file" id="fileInput" multiple accept=".pdf,.txt,.html,.htm,.md" style="display:none" />
+    <button class="btn ghost uploadbtn" id="uploadBtn">⭱ Upload files</button>
+    <p class="hint" style="margin-top:10px;font-size:11.5px">Saved into <code>idea_basket/</code>. On Execute, files are studied and marked <span class="vis visited">visited</span>.</p>
+  </aside>
+
+  <!-- RIGHT: main -->
+  <main>
+    <section class="card">
+      <h2 id="expName">Idea basket</h2>
+      <div class="goal" id="goal"><b>Goal:</b> —</div>
+      <p class="hint">Each Execute searches up to the paper limit and adds <b>fewer than 10</b> goal-aligned ideas (from papers + your files) as <b>pending</b>.</p>
+      <div class="controls">
+        <div class="field">
+          <label>Paper limit</label>
+          <input type="number" id="paperLimit" min="1" max="100" value="10" />
+        </div>
+        <button class="btn primary" id="executeBtn">▶ Execute — find ideas</button>
+        <button class="btn go" id="newBtn">＋ New idea</button>
+        <button class="btn ghost" id="viewBtn">view idea.md</button>
+      </div>
+      <div class="banner hidden" id="banner"><span class="spinner"></span><span id="bannerMsg"></span></div>
+    </section>
+
+    <section class="card">
+      <h2>Basket</h2>
+      <div class="chips" id="chips"></div>
+      <table>
+        <thead><tr><th>#</th><th>status</th><th>idea</th><th>source</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty" id="emptyMsg">No ideas yet — Execute, or add your own with “New idea”.</div>
+    </section>
+  </main>
+</div>
+
+<!-- New-idea dialog -->
+<div class="modal hidden" id="newModal">
+  <div class="dialog">
+    <h3>Add your own idea</h3>
+    <p class="hint">Write your thought in any words — the agent will tidy the grammar (max 3–4 sentences) and tell you how it aligns with the goal before adding.</p>
+    <textarea id="newText" placeholder="e.g. maybe add skip connection make sharper image…"></textarea>
+    <div class="row">
+      <button class="btn ghost" id="newCancel">Cancel</button>
+      <button class="btn go" id="newSubmit">Review against goal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Proposal review dialog -->
+<div class="modal hidden" id="reviewModal">
+  <div class="dialog">
+    <h3>Review before adding</h3>
+    <div id="reviewThinking"><span class="spinner"></span> The agent is reviewing your idea…</div>
+    <div id="reviewBody" style="display:none">
+      <div class="align" id="alignBadge"></div>
+      <pre class="idea" id="cleanIdea"></pre>
+      <div class="opinion" id="opinion"></div>
+      <div class="row">
+        <button class="btn ghost" id="revCancel">Cancel</button>
+        <button class="btn warn" id="revForce">Add anyway</button>
+        <button class="btn primary" id="revAdd">Add to basket</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- idea.md viewer -->
+<div class="modal hidden" id="mdModal">
+  <div class="dialog">
+    <h3>idea.md</h3>
+    <div class="mdview" id="mdView">(loading…)</div>
+    <div class="row"><button class="btn ghost" id="mdClose">Close</button></div>
+  </div>
+</div>
+
+<script>
+function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function show(id,on){document.getElementById(id).classList.toggle("hidden",!on);}
+async function postJSON(url,obj){return fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(obj||{})});}
+
+/* ---- source rendering: show paper link / file name ---- */
+function renderSource(i){
+  const cat=esc(i.source_cat||""); const raw=i.source||"";
+  const link=(raw.match(/https?:\/\/\S+/)||[])[0];
+  let detail;
+  if(link) detail=`<a href="${esc(link)}" target="_blank">${esc(link)}</a>`;
+  else if(/^doc:/i.test(raw)) detail=esc(raw.replace(/^doc:\s*/i,"📄 "));
+  else detail=esc(raw);
+  return `<span class="src">${cat}</span><br><span class="srcraw">${detail}</span>`;
+}
+
+/* ---- files (left) ---- */
+function renderFiles(files){
+  const box=document.getElementById("fileList"); box.innerHTML="";
+  (files||[]).forEach(f=>{
+    const d=document.createElement("div"); d.className="file";
+    d.innerHTML=`<span class="fn">${esc(f.name)}</span>`+
+      `<span class="vis ${f.status==='visited'?'visited':'new'}">${f.status}</span>`;
+    box.appendChild(d);
+  });
+  document.getElementById("noFiles").style.display=(files&&files.length)?"none":"block";
+}
+
+/* ---- basket table ---- */
+function renderIdeas(d){
+  const ideas=d.ideas||[], c=d.counts||{};
+  document.getElementById("chips").innerHTML =
+    `<div class="chip">total <b>${c.total||0}</b></div>`+
+    `<div class="chip">pending <b>${c.pending||0}</b></div>`+
+    `<div class="chip">doing <b>${c.doing||0}</b></div>`+
+    `<div class="chip">selected <b>${c.selected||0}</b></div>`+
+    `<div class="chip">discarded <b>${c.discarded||0}</b></div>`;
+  const tb=document.getElementById("tbody"); tb.innerHTML="";
+  ideas.forEach(i=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${i.idx}</td>`+
+      `<td><span class="st ${esc(i.status)}">${esc(i.status)}</span></td>`+
+      `<td>${esc(i.text)}</td><td>${renderSource(i)}</td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById("emptyMsg").style.display=ideas.length?"none":"block";
+  renderFiles(d.files);
+}
+
+/* ---- execute ---- */
+document.getElementById("executeBtn").onclick=async (e)=>{
+  e.target.disabled=true;
+  const paper_limit=parseInt(document.getElementById("paperLimit").value)||10;
+  await postJSON("/execute",{paper_limit});
+};
+
+/* ---- upload ---- */
+document.getElementById("uploadBtn").onclick=()=>document.getElementById("fileInput").click();
+document.getElementById("fileInput").onchange=async (e)=>{
+  const files=[...e.target.files];
+  for(const f of files){
+    const buf=await f.arrayBuffer();
+    await fetch("/upload?name="+encodeURIComponent(f.name),{method:"POST",body:buf});
+  }
+  e.target.value=""; poll();
+};
+
+/* ---- new idea -> propose ---- */
+document.getElementById("newBtn").onclick=()=>{document.getElementById("newText").value="";show("newModal",true);};
+document.getElementById("newCancel").onclick=()=>show("newModal",false);
+document.getElementById("newSubmit").onclick=async ()=>{
+  const text=document.getElementById("newText").value.trim(); if(!text)return;
+  await postJSON("/propose",{text});
+  show("newModal",false);
+  document.getElementById("reviewThinking").style.display="block";
+  document.getElementById("reviewBody").style.display="none";
+  show("reviewModal",true);
+};
+document.getElementById("revCancel").onclick=async ()=>{await postJSON("/confirm",{accept:false});show("reviewModal",false);};
+document.getElementById("revAdd").onclick=async ()=>{await postJSON("/confirm",{accept:true,force:false});show("reviewModal",false);};
+document.getElementById("revForce").onclick=async ()=>{await postJSON("/confirm",{accept:true,force:true});show("reviewModal",false);};
+
+function renderProposal(p){
+  if(!p||!p.pending){return;}
+  document.getElementById("reviewThinking").style.display="none";
+  document.getElementById("reviewBody").style.display="block";
+  const b=document.getElementById("alignBadge");
+  b.className="align "+(p.aligned?"yes":"no");
+  b.textContent=p.aligned?"✓ aligns with the goal":"✗ does not clearly align with the goal";
+  document.getElementById("cleanIdea").textContent=p.cleaned||"";
+  document.getElementById("opinion").innerHTML="<b>Agent's opinion:</b> "+esc(p.opinion||"");
+  document.getElementById("revAdd").style.display=p.aligned?"inline-block":"none";
+  show("reviewModal",true);
+}
+
+/* ---- idea.md viewer ---- */
+document.getElementById("viewBtn").onclick=async ()=>{
+  document.getElementById("mdView").textContent="(loading…)";
+  show("mdModal",true);
+  const t=await (await fetch("/idea_md")).text();
+  document.getElementById("mdView").textContent=t;
+};
+document.getElementById("mdClose").onclick=()=>show("mdModal",false);
+
+/* ---- state ---- */
+function applyState(st){
+  const phase=st.phase||"idle";
+  document.getElementById("phaseLabel").textContent=phase;
+  if(st.name) document.getElementById("expName").textContent=st.name+" — idea basket";
+  if(st.goal) document.getElementById("goal").innerHTML="<b>Goal:</b> "+esc(st.goal);
+  document.getElementById("dot").className="dot"+((phase==="collecting"||phase==="thinking")?" run":"");
+  const busy=phase==="collecting";
+  show("banner",false); document.getElementById("banner").classList.toggle("hidden",!busy);
+  if(st.message) document.getElementById("bannerMsg").textContent=st.message;
+  const b=document.getElementById("executeBtn");
+  b.disabled=busy; b.textContent=busy?"▶ Collecting…":"▶ Execute — find ideas";
+}
+
+async function poll(){
+  try{
+    const st=await (await fetch("/state")).json();
+    applyState(st);
+    renderIdeas(await (await fetch("/ideas")).json());
+    const rm=document.getElementById("reviewModal");
+    if(!rm.classList.contains("hidden")){
+      renderProposal(await (await fetch("/proposal")).json());
+    }
+  }catch(e){}
+}
+setInterval(poll,1200); poll();
+</script>
+</body>
+</html>
