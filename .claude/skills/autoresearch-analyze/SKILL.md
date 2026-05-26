@@ -13,24 +13,23 @@ This skill is **controlled**, like the rest of the pipeline: one script computes
 
 - `report.py` — the controlled report generator. Reads `results.tsv` + the spec + `findings.md` and writes: a **text summary** (stdout / `--json`), `progress.png` (the primary measure), and **`report.pdf`** — a single-page "pageless" report (experiment name, date, total run time, the goal, one plot per improved metric, and a list of every kept experiment with number, commit, provenance, and description).
 - `analyze_lib.py` — shared parsing/stats the script imports. You don't call it directly.
-- `ui/report_server.py` + `ui/index.html` — the **browser report viewer** (the default surface; see below).
+- The **Analyze panel** in the HASI dashboard (`autoresearch-conductor/hasi-ui/`) is the user-facing report viewer; this skill speaks to it through the conductor's file-bus (see below).
 
 `<skill_dir>` is this skill's directory; `<root>` is the project root (the folder containing `.autoresearch/`).
 
-## Default flow: browser report viewer
+## Default flow: HASI dashboard analyze panel
 
-By default, open the local report viewer that ships with this skill (`ui/report_server.py` + `ui/index.html`). It is a stdlib-only local web server acting as a file-based message bus. The page has an **Execute** button (generate the report), shows the summary + stat chips, **embeds `report.pdf` inline**, and offers a **Download** button. The engine is identical to the terminal steps below — the viewer just drives them.
+By default, the report is driven from the **Analyze panel** in the HASI dashboard. It has an **Execute** button (generate the report), shows the summary, **embeds `report.pdf` inline**, and offers **Download** and **Open in new tab** buttons. The engine is identical to the terminal steps below — the panel just drives them.
 
-Protocol — control files live in a runtime dir (`$WORKDIR`); the report files live in the project root. `state.json` (you write) = `{phase, name, metric, summary, has_report, report_rev, message}` (phase: `idle|generating|ready|empty|error`). `summary.json` (you write) = the `report.py --json` object. The server writes `execute.json` on the button and serves `/report.pdf` + `/progress.png` from the project root.
+Protocol — control files live in a runtime dir (`$WORKDIR`); the report files live in the project root. `state.json` (you write) = `{phase, name, metric, summary, has_report, report_rev, message}` (phase: `idle|generating|ready|empty|error`). `summary.json` (you write) = the `report.py --json` object. The conductor writes `execute.json` on the button and serves `/report.pdf` + `/progress.png` from the project root.
 
 Orchestrate it like this:
 
-1. **Start it.** Resolve `<root>`. `WORKDIR=$(mktemp -d)`. Launch in the background on a free port (default 8772; pick another if busy): `python3 <skill_dir>/ui/report_server.py --port <PORT> --workdir "$WORKDIR" --project-root "<root>"` (run_in_background). Open the browser: `open http://127.0.0.1:<PORT>` (macOS) / `xdg-open` (Linux). Tell the user: "Opened the report viewer in your browser."
-2. **Seed the state.** Write `$WORKDIR/state.json` with `phase:"idle"`, the experiment `name`/`metric` from the spec, and `has_report` = does `<root>/report.pdf` already exist.
-3. **Wait for Execute.** `Monitor` until `$WORKDIR/execute.json` appears.
-4. **Generate.** On `execute.json` (delete it): run Steps 1–2 below — if the ledger is empty, set `state.json` `phase:"empty"` and go back to step 3; otherwise compose `narratives.json` (optional, for richer descriptions) and run `python <skill_dir>/report.py <root> --narratives <root>/narratives.json --json`. Write the JSON output to `$WORKDIR/summary.json`, then set `state.json` `phase:"ready"`, `has_report:true`, `summary:"<headline>"`, and **bump `report_rev`** (so the viewer refreshes the embedded PDF). Stay available for re-generation (loop back to step 3).
+1. **Seed the state.** Resolve `<root>`. Write `$WORKDIR/state.json` with `phase:"idle"`, the experiment `name`/`metric` from the spec, and `has_report` = does `<root>/report.pdf` already exist.
+2. **Wait for Execute.** `Monitor` until `$WORKDIR/execute.json` appears.
+3. **Generate.** On `execute.json` (delete it): run Steps 1–2 below — if the ledger is empty, set `state.json` `phase:"empty"` and go back to step 2; otherwise compose `narratives.json` (optional, for richer descriptions) and run `python <skill_dir>/report.py <root> --narratives <root>/narratives.json --json`. Write the JSON output to `$WORKDIR/summary.json`, then set `state.json` `phase:"ready"`, `has_report:true`, `summary:"<headline>"`, and **bump `report_rev`** (so the panel refreshes the embedded PDF). Stay available for re-generation (loop back to step 2).
 
-**Fallback to terminal** if the server can't start or the browser can't open (headless, sandbox, port blocked), or if the user prefers it: say so and run the steps below directly.
+**Fallback to terminal** if the HASI dashboard isn't available, or if the user prefers it: say so and run the steps below directly.
 
 ## Core principles
 
