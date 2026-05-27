@@ -1,0 +1,10 @@
+services:
+  openclaw-gateway:
+    # Publish the autoresearch dashboard ports (conductor + per-stage UIs)
+    # so they are reachable from the host browser. The UI servers must bind
+    # 0.0.0.0 inside the container for these to work (see skills bind fix).
+    environment:
+      AUTORESEARCH_BIND: "0.0.0.0"
+      OLLAMA_API_KEY: "ollama-local"
+    ports:
+      - "8780-8785:8780-8785"

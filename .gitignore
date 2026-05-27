@@ -1,2 +1,13 @@
 .DS_Store
-.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Node / Next.js
+node_modules/
+.next/
+*.tsbuildinfo
+
+# Local scratch
+readme_support.txt

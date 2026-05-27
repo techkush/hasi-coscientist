@@ -1,0 +1,7 @@
+results.tsv
+run.log
+{{DATA_IGNORE}}__pycache__/
+.autoresearch/
+idea.md
+findings.md
+idea_basket/

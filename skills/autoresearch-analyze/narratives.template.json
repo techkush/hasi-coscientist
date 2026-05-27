@@ -1,0 +1,6 @@
+{
+  "_comment": "Controlled format for report.py --narratives. A map of SHORT git commit -> a 3-4 sentence narrative for that KEPT experiment. The agent (autoresearch-analyze) writes one of these, then runs:  python report.py <root> --narratives narratives.json  to embed the rich descriptions in report.pdf. Keys must match the short commit in results.tsv. Say WHAT changed, WHY, the before -> after measure, and WHERE the idea came from (the user / a paper or web source / the idea basket / the AI agent's own reasoning). Keep each value to 3-4 sentences. Delete this _comment key in real files.",
+  "c3d4e5f": "Replaced the single linear layer with a 2-layer convolutional encoder so the model could capture local image structure. This was the agent's own idea after inspecting the baseline's blurry reconstructions. PSNR rose from 18.21 to 19.42 — the first real gain of the run.",
+  "f6a7b8c": "Adopted a cosine learning-rate schedule with warm restarts and widened the latent to 96. The schedule idea came from the SGDR paper (arXiv:1608.03983). PSNR jumped from 19.45 to 21.01, the biggest single improvement so far, with only a modest memory increase.",
+  "b8c9d0e": "Added a residual skip connection in the decoder so fine detail bypasses the bottleneck. This came from the idea basket (a user-curated suggestion). It set a new best PSNR of 22.33, up from 21.01."
+}
