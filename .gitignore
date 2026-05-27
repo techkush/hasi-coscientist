@@ -9,5 +9,3 @@ node_modules/
 .next/
 *.tsbuildinfo
 
-# Local scratch
-readme_support.txt
